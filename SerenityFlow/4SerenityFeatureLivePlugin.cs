@@ -1,9 +1,8 @@
-﻿using GitCommands;
-using GitUIPluginInterfaces;
-using System;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
+using GitCommands;
+using GitUIPluginInterfaces;
 
 namespace SerenityFlow
 {
@@ -25,7 +24,8 @@ namespace SerenityFlow
             int exitCode;
             exitCode = args.GitModule.RunGitCmdResult("submodule update --init --recursive").ExitCode;
             
-            var statusString = args.GitModule.RunGit(allChangesCmd, out exitCode);
+            var resultString = args.GitModule.RunGitCmdResult(allChangesCmd);
+            var statusString = resultString.StdOutput;
             var changedFiles = GitCommandHelpers.GetAllChangedFilesFromString(module, statusString);
             if (changedFiles.Count != 0)
             {
@@ -40,7 +40,7 @@ namespace SerenityFlow
             if (branch != "master")
             {
                 var switchBranchCmd = GitCommandHelpers.CheckoutCmd("master", LocalChangesAction.DontChange);
-                args.GitModule.RunGit(switchBranchCmd, out exitCode);
+                exitCode = args.GitModule.RunGitCmdResult(switchBranchCmd).ExitCode;
 
                 branch = args.GitModule.GetSelectedBranch().ToLowerInvariant();
                 if (branch != "master")
@@ -54,7 +54,9 @@ namespace SerenityFlow
             // rebase yaparsak bazı merge commitleriyle ilgili kayıp yaşanabilir
             // bu arada eğer local te bir şekilde master da commit varsa (merkezde olmayan??) branch bir önceki committen alınmış olur
             var pullCmd = module.PullCmd("origin", "master", "master", false);
-            var pullResult = args.GitModule.RunGit(pullCmd, out exitCode);
+            var cmdResult = args.GitModule.RunGitCmdResult(pullCmd);
+            var pullResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0)
             {
@@ -120,7 +122,9 @@ namespace SerenityFlow
                 Dialogs.Alert("TAG RESULT: " + tagResult);
 
             var pushTagCmd = GitCommandHelpers.PushTagCmd("origin", tagName, false);
-            var pushTagResult = args.GitModule.RunGit(pushTagCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(pushTagCmd);
+            var pushTagResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0)
             {
@@ -129,7 +133,9 @@ namespace SerenityFlow
             }
 
             var mergeCmd = GitCommandHelpers.MergeBranchCmd(commit, true, true, true, null);
-            var mergeResult = args.GitModule.RunGit(mergeCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(mergeCmd);
+            var mergeResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0 && exitCode != 128)
             {
@@ -145,11 +151,13 @@ namespace SerenityFlow
             try
             {
                 var commitCmd = "commit --author=\"" + author + "\" --file=\"" + msgFile.Replace("\\", "/") + "\"";
-                var commitResult = args.GitModule.RunGit(commitCmd, out exitCode);
-                
+                cmdResult = args.GitModule.RunGitCmdResult(commitCmd);
+                var commitResult = cmdResult.StdError;
+                exitCode = cmdResult.ExitCode;
+
                 if (exitCode != 0)
                 {
-                    MessageBox.Show("Commit işlemi esnasında şu hata alındı:\n" + mergeResult + "\nExitCode:" + exitCode);
+                    MessageBox.Show("Commit işlemi esnasında şu hata alındı:\n" + commitResult + "\nExitCode:" + exitCode);
                     return true;
                 }
             }

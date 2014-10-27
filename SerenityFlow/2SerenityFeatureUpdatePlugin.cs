@@ -1,11 +1,12 @@
-﻿using GitCommands;
-using GitUIPluginInterfaces;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using GitCommands;
+using GitUIPluginInterfaces;
 
 namespace SerenityFlow
 {
+
     public class SerenityFeatureUpdatePlugin : GitPluginBase, IGitPluginForRepository, IGitPlugin
     {
         public override string Description
@@ -43,7 +44,10 @@ namespace SerenityFlow
 
             // origin deki son değişikliklerden haberdar ol
             var fetchCmd = module.FetchCmd("origin", "", "");
-            var fetchResult = args.GitModule.RunGit(fetchCmd, out exitCode);
+            var cmdResult = args.GitModule.RunGitCmdResult(fetchCmd);
+            var fetchResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
+
             if (exitCode != 0)
             {
                 MessageBox.Show("Fetch işlemi esnasında şu hata alındı:\n" +
@@ -56,7 +60,10 @@ namespace SerenityFlow
             if (remoteBranchExists)
             {
                 var pullFeatureCmd = module.PullCmd("origin", featureBranch, featureBranch, false);
-                var pullFeatureResult = args.GitModule.RunGit(pullFeatureCmd, out exitCode);
+                cmdResult = args.GitModule.RunGitCmdResult(pullFeatureCmd);
+
+                var pullFeatureResult = cmdResult.StdError;
+                exitCode = cmdResult.ExitCode;
 
                 if (exitCode != 0)
                 {
@@ -67,7 +74,7 @@ namespace SerenityFlow
             }
 
             var switchBranchCmd = GitCommandHelpers.CheckoutCmd("master", LocalChangesAction.DontChange);
-            args.GitModule.RunGit(switchBranchCmd, out exitCode);
+            exitCode = args.GitModule.RunGitCmdResult(switchBranchCmd).ExitCode;
 
             var currentBranch = args.GitModule.GetSelectedBranch().ToLowerInvariant();
             if (currentBranch != "master")
@@ -77,7 +84,9 @@ namespace SerenityFlow
             }
 
             var pullCmd = module.PullCmd("origin", "master", "master", false);
-            var pullResult = args.GitModule.RunGit(pullCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(pullCmd);
+            var pullResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0)
             {
@@ -87,7 +96,7 @@ namespace SerenityFlow
             }
 
             switchBranchCmd = GitCommandHelpers.CheckoutCmd(featureBranch, LocalChangesAction.DontChange);
-            args.GitModule.RunGit(switchBranchCmd, out exitCode);
+            exitCode = args.GitModule.RunGitCmdResult(switchBranchCmd).ExitCode;
 
             currentBranch = args.GitModule.GetSelectedBranch();
             if (currentBranch != featureBranch)
@@ -98,7 +107,9 @@ namespace SerenityFlow
 
             // master'ı feature branch e birleştir
             var mergeCmd = GitCommandHelpers.MergeBranchCmd("master", allowFastForward: true, squash: false, noCommit: false, strategy: "");
-            var mergeResult = args.GitModule.RunGit(mergeCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(mergeCmd);
+            var mergeResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0)
             {
@@ -111,7 +122,10 @@ namespace SerenityFlow
             {
                 // varsa local deki değişikliği hemen merkeze gönderelim
                 var pushFeatureCmd = GitCommandHelpers.PushCmd("origin", featureBranch, false);
-                var pushFeatureResult = args.GitModule.RunGit(pushFeatureCmd, out exitCode);
+                cmdResult = args.GitModule.RunGitCmdResult(pushFeatureCmd);
+                var pushFeatureResult = cmdResult.StdError;
+                exitCode = cmdResult.ExitCode;
+
 
                 if (exitCode != 0)
                 {

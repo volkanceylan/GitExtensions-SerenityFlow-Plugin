@@ -1,8 +1,8 @@
-﻿using GitCommands;
-using GitUIPluginInterfaces;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using GitCommands;
+using GitUIPluginInterfaces;
 
 namespace SerenityFlow
 {
@@ -29,7 +29,9 @@ namespace SerenityFlow
 
             // öncelikle bekleyen hiçbir değişiklik olmadığından emin oluyoruz
             
-            var statusString = args.GitModule.RunGit(allChangesCmd, out exitCode);
+            var cmdResult = args.GitModule.RunGitCmdResult(allChangesCmd);
+            var statusString = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
             var changedFiles = GitCommandHelpers.GetAllChangedFilesFromString(module, statusString);
             if (changedFiles.Count != 0)
             {
@@ -62,7 +64,7 @@ namespace SerenityFlow
             if (branch != "master")
             {
                 var switchBranchCmd = GitCommandHelpers.CheckoutCmd("master", LocalChangesAction.DontChange);
-                args.GitModule.RunGit(switchBranchCmd, out exitCode);
+                exitCode = args.GitModule.RunGitCmdResult(switchBranchCmd).ExitCode;
 
                 branch = args.GitModule.GetSelectedBranch().ToLowerInvariant();
                 if (branch != "master")
@@ -76,7 +78,9 @@ namespace SerenityFlow
             // rebase yaparsak bazı merge commitleriyle ilgili kayıp yaşanabilir
             // bu arada eğer local te bir şekilde master da commit varsa (merkezde olmayan??) branch bir önceki committen alınmış olur
             var pullCmd = module.PullCmd("origin", "master", "master", false);
-            var pullResult = args.GitModule.RunGit(pullCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(pullCmd);
+            var pullResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0)
             {
@@ -87,7 +91,10 @@ namespace SerenityFlow
 
             // feature branch oluştur
             var checkoutCmd = "checkout -b " + featureBranchName;
-            var checkoutResult = args.GitModule.RunGit(checkoutCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(checkoutCmd);
+            var checkoutResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
+
             if (exitCode != 0)
             {
                 MessageBox.Show("Branch oluşturma işlemi esnasında şu hata alındı:\n" +

@@ -1,8 +1,8 @@
-﻿using GitCommands;
-using GitUIPluginInterfaces;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using GitCommands;
+using GitUIPluginInterfaces;
 
 namespace SerenityFlow
 {
@@ -19,9 +19,9 @@ namespace SerenityFlow
         public override bool Execute(GitUIBaseEventArgs args)
         {
             var module = (GitModule)args.GitModule;
-            var allChangesCmd = GitCommands.GitCommandHelpers.GetAllChangedFilesCmd(true, UntrackedFilesMode.All, IgnoreSubmodulesMode.All);;
-
-            int exitCode = args.GitModule.RunGitCmdResult("submodule update --init --recursive").ExitCode;
+            var allChangesCmd = GitCommandHelpers.GetAllChangedFilesCmd(true, UntrackedFilesMode.All, IgnoreSubmodulesMode.All);;
+            CmdResult cmdResult;
+            var exitCode = args.GitModule.RunGitCmdResult("submodule update --init --recursive").ExitCode;
 
             // öncelikle bekleyen hiçbir değişiklik olmadığından emin oluyoruz
             var status = args.GitModule.RunGitCmdResult(allChangesCmd);
@@ -63,7 +63,9 @@ namespace SerenityFlow
             if (remoteBranchExists)
             {
                 var pullFeatureCmd = module.PullCmd("origin", featureBranch, featureBranch, false);
-                var pullFeatureResult = args.GitModule.RunGit(pullFeatureCmd, out exitCode);
+                cmdResult = args.GitModule.RunGitCmdResult(pullFeatureCmd);
+                var pullFeatureResult = cmdResult.StdError;
+                exitCode = cmdResult.ExitCode;
 
                 if (exitCode != 0)
                 {
@@ -75,7 +77,7 @@ namespace SerenityFlow
 
             // test branch ine geçiş yap
             var switchBranchCmd = GitCommandHelpers.CheckoutCmd("test", LocalChangesAction.DontChange);
-            args.GitModule.RunGit(switchBranchCmd, out exitCode);
+            exitCode = args.GitModule.RunGitCmdResult(switchBranchCmd).ExitCode;
 
             var currentBranch = args.GitModule.GetSelectedBranch().ToLowerInvariant();
             if (currentBranch != "test")
@@ -87,7 +89,9 @@ namespace SerenityFlow
             // varsa test teki son değişiklikleri al
             // test e direk commit olmayacağı varsayıldığından rebase e gerek yok.
             var pullCmd = module.PullCmd("origin", "test", "test", false);
-            var pullResult = args.GitModule.RunGit(pullCmd, out exitCode);
+            cmdResult = args.GitModule.RunGitCmdResult(pullCmd);
+            var pullResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
 
             if (exitCode != 0)
             {
@@ -98,8 +102,10 @@ namespace SerenityFlow
 
             // feature branch i test e birleştir
             var mergeCmd = GitCommandHelpers.MergeBranchCmd(featureBranch, allowFastForward: false, squash: false, noCommit: false, strategy: "");
-            var mergeResult = args.GitModule.RunGit(mergeCmd, out exitCode);
-
+            cmdResult = args.GitModule.RunGitCmdResult(mergeCmd);
+            var mergeResult = cmdResult.StdError;
+            exitCode = cmdResult.ExitCode;
+            
             if (exitCode != 0)
             {
                 MessageBox.Show("Merge işlemi esnasında şu hata alındı:\n" +
