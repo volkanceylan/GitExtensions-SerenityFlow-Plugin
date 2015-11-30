@@ -121,7 +121,7 @@ namespace SerenityFlow
             if (remoteBranchExists)
             {
                 // varsa local deki değişikliği hemen merkeze gönderelim
-                var pushFeatureCmd = GitCommandHelpers.PushCmd("origin", featureBranch, false);
+                var pushFeatureCmd = GitCommandHelpers.PushTagCmd("origin", featureBranch, false);
                 cmdResult = args.GitModule.RunGitCmdResult(pushFeatureCmd);
                 var pushFeatureResult = cmdResult.StdError;
                 exitCode = cmdResult.ExitCode;
