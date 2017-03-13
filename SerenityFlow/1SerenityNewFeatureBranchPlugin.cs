@@ -3,17 +3,16 @@ using System.Linq;
 using System.Windows.Forms;
 using GitCommands;
 using GitUIPluginInterfaces;
+using ResourceManager;
 
 namespace SerenityFlow
 {
     public class SerenityNewFeatureBranchPlugin : GitPluginBase, IGitPluginForRepository, IGitPlugin
     {
-        public override string Description
+        public SerenityNewFeatureBranchPlugin()
         {
-            get
-            {
-                return "1) Yeni Feature";
-            }
+            SetNameAndDescription("1) Yeni Feature");
+            Translate();
         }
 
         private static string allChangesCmd;

@@ -3,18 +3,17 @@ using System.Linq;
 using System.Windows.Forms;
 using GitCommands;
 using GitUIPluginInterfaces;
+using ResourceManager;
 
 namespace SerenityFlow
 {
 
     public class SerenityFeatureUpdatePlugin : GitPluginBase, IGitPluginForRepository, IGitPlugin
     {
-        public override string Description
+        public SerenityFeatureUpdatePlugin()
         {
-            get
-            {
-                return "2) Canlıdan Değişiklikleri Al (master'dan MERGE)";
-            }
+            SetNameAndDescription("2) Canlıdan Değişiklikleri Al (master'dan MERGE)");
+            Translate();
         }
 
         public override bool Execute(GitUIBaseEventArgs args)

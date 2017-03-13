@@ -3,17 +3,16 @@ using System.IO;
 using System.Windows.Forms;
 using GitCommands;
 using GitUIPluginInterfaces;
+using ResourceManager;
 
 namespace SerenityFlow
 {
     public class SerenityFeatureLivePlugin : GitPluginBase, IGitPluginForRepository, IGitPlugin
     {
-        public override string Description
+        public SerenityFeatureLivePlugin()
         {
-            get
-            {
-                return "4) FEATURE'ı MASTER'a BİRLEŞTİR (Tag/Merge-Squash)";
-            }
+            SetNameAndDescription("4) FEATURE'ı MASTER'a BİRLEŞTİR (Tag/Merge-Squash)");
+            Translate();
         }
 
         public override bool Execute(GitUIBaseEventArgs args)

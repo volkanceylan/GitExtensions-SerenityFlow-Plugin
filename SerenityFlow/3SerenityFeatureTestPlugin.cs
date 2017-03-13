@@ -3,17 +3,16 @@ using System.Linq;
 using System.Windows.Forms;
 using GitCommands;
 using GitUIPluginInterfaces;
+using ResourceManager;
 
 namespace SerenityFlow
 {
     public class SerenityFeatureTestPlugin : GitPluginBase, IGitPluginForRepository, IGitPlugin
     {
-        public override string Description
+        public SerenityFeatureTestPlugin()
         {
-            get
-            {
-                return "3) TEST'e Gönder!";
-            }
+            SetNameAndDescription("3) TEST'e Gönder!");
+            Translate();
         }
 
         public override bool Execute(GitUIBaseEventArgs args)
